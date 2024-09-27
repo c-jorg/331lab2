@@ -17,6 +17,27 @@ class MyServer(BaseHTTPRequestHandler):
             self.wfile.write(("Hello World! " + self.getPage()).encode())
             self.wfile.write(bytes(str(self.getParams()), "utf-8"))
             self.wfile.write(bytes("\nThis is a another line", "utf-8"))
+            self.wfile.write(bytes("\n Why does the newline not work, what it pythons newline character. But it doesnt show on the webpage thats weird I think", "utf-8"))
+            self.wfile.write(bytes("\n Maybe thats just an unformatted html thing and the newline is working. Thats probably it","utf-8"))
+            self.wfile.write(bytes("<br/<br/> Did this work for a line break thingy","utf-8"))
+            self.wfile.write(bytes("<br/><br/> yes it seems like it did","utf-8"))
+            
+            html = open("encryptionBase.html")
+            htmlString = html.read()
+            html.close()
+            self.wfile.write(bytes("<br/><br/>", "utf-8"))
+            self.wfile.write(bytes(htmlString.replace("_PLACEHOLDER_", "You have not encrypted or decrypted anything."), "utf-8"))
+            #self.wfile.write(bytes("<br/><br/>" + htmlString, "utf-8"))
+            
+        if self.getPage() == '/encrypt':
+            myParams = self.getParams()
+            encryptedText = self.encode(myParams['key'], myParams['plaintext'])
+            self.wfile.write(encryptedText)
+            
+        if self.getPage() == '/decrypt':
+            myParams = self.getParams()
+            decryptedText = self.decode(myParams['key'], myParams['cipherText'])
+            self.wfile.write(bytes(decryptedText, "utf-8"))
             
     # Gets the query parameters of a request and returns them as a dictionary
     def getParams(self):
@@ -28,8 +49,9 @@ class MyServer(BaseHTTPRequestHandler):
         return output
     
     # Returns a string containing the page (path) that the request was for
-    def getPage(self):
+    def getPage(self):           
         return parse.urlsplit(self.path).path
+       # return htmlString
     
 	# Encode a plaintext using key
     def encode(self, key, plaintext):
