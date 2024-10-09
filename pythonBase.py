@@ -4,7 +4,7 @@ from urllib import parse
 import json
 
 hostName = "localhost"
-serverPort = 8080
+serverPort = 8081
 
 class MyServer(BaseHTTPRequestHandler):
     history = []
