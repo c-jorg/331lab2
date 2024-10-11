@@ -74,15 +74,29 @@ class MyServer(BaseHTTPRequestHandler):
         # TO-DO: OVERWRITE EXISTING JSON OBJECT
         
         myURI = self.getURI()
+       # print(myURI)
         if myURI in self.myDict:
+            params = self.getParams()
             try:
                 data = json.loads(self.getBody())
-                del self.myDict[myURI]
-                self.myDict[myURI] = data
-                self.set_headers(200)
-                self.wfile.write(str(data).encode())
+                if 'key' in params:
+                    print("key in params")
+                    jsonKey = params['key']
+                    if jsonKey in self.myDict[myURI]:
+                        del self.myDict[myURI][jsonKey]
+                        self.set_headers(200)
+                        self.myDict[myURI] = data
+                        self.wfile.write(str(data).encode())
+    
+                        self.set_headers(400)
+                else:
+                    print("key not in params")
+                    self.set_headers(200)
+                    self.wfile.write(str(data).encode())
+                    del self.myDict[myURI]
+                    self.myDict[myURI] = data
             except:
-                self.set_header(400)
+                self.set_headers(400)
         else:
             self.set_headers(404)
         
@@ -92,11 +106,25 @@ class MyServer(BaseHTTPRequestHandler):
         
         myURI = self.getURI()
         if myURI in self.myDict:
-            data = json.loads(self.myDict[myURI])
-            del self.myDict[myURI]
-            self.set_headers(200)
+            params = self.getParams()
+
+            if 'key' in params:
+                jsonKey = params['key']
+                if jsonKey in self.myDict[myURI]:
+                    try:
+                        data = self.myDict[myURI][jsonKey]
+                        del self.myDict[myURI][jsonKey]
+                        self.set_headers(200)
+                        self.wfile.write(str(data).encode())
+                    except:
+                        self.set_headers(400)
+            else:
+                self.set_headers(200)
+                self.wfile.write(str(self.myDict[myURI]).encode())
+                del self.myDict[myURI]
         else:
             self.set_headers(404)
+            
         
     def do_PATCH(self):
         print("PATCH REQUEST")
@@ -107,11 +135,9 @@ class MyServer(BaseHTTPRequestHandler):
         
         myURI = self.getURI()
         if myURI in self.myDict:
-            try:
-                print(self.myDict[myURI])
-                self.set_headers(200)
-            except:
-                self.set_headers(400)
+            params = self.getParams()
+            
+            
         else:
             self.set_headers(404)
         
