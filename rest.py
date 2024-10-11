@@ -23,23 +23,97 @@ class MyServer(BaseHTTPRequestHandler):
     
     def do_GET(self):
         print("GET REQUEST")
-        # TO-DO: FETCH JSON OBJECT OR SPECIFIC VALUE
+        
+        myURI = self.getURI()
+        
+
+        
+        if myURI == "/":
+            self.set_headers(200)
+            self.wfile.write(self.getURI().encode())
+            html = open("request.html")
+            htmlString = html.read()
+            html.close()
+            self.wfile.write(bytes(htmlString, "utf-8"))
+       
+        if myURI in self.myDict:
+           params = self.getParams()
+           
+           if 'key' in params:
+               jsonKey = params['key']
+               if jsonKey in self.myDict[myURI]:
+                   data = self.myDict[myURI][jsonKey]
+                   self.set_headers(200)
+                   self.wfile.write(str(data).encode())
+               else:
+                   self.set_headers(404)
+           else:
+               self.set_headers(200)
+               self.wfile.write(str(self.myDict[myURI]).encode())
+        else:
+           self.set_headers(404)
+
         
     def do_POST(self):
         print("POST REQUEST")
-        # TO-DO: CREATE JSON OBJECT
+        #TO-DO: CREATE JSON OBJECT
+        
+        myURI = self.getURI()
+        if myURI not in self.myDict:
+            try:
+                data = json.loads(self.getBody())
+                self.myDict[myURI] = data
+                self.set_headers(201)
+            except:
+                self.set_headers(400)
+        else:
+            self.set_headers(409)
         
     def do_PUT(self):
         print("PUT REQUEST")
         # TO-DO: OVERWRITE EXISTING JSON OBJECT
         
+        myURI = self.getURI()
+        if myURI in self.myDict:
+            try:
+                data = json.loads(self.getBody())
+                del self.myDict[myURI]
+                self.myDict[myURI] = data
+                self.set_headers(200)
+                self.wfile.write(str(data).encode())
+            except:
+                self.set_header(400)
+        else:
+            self.set_headers(404)
+        
     def do_DELETE(self):
         print("DELETE REQUEST")
         # TO-DO: DELETE EXISTING JSON OBJECT
         
+        myURI = self.getURI()
+        if myURI in self.myDict:
+            data = json.loads(self.myDict[myURI])
+            del self.myDict[myURI]
+            self.set_headers(200)
+        else:
+            self.set_headers(404)
+        
     def do_PATCH(self):
         print("PATCH REQUEST")
         # TO-DO: SELECTIVELY OVERWRITE KEY-VALUE PAIRS OF A JSON OBJECT
+        
+        self.do_PUT()
+        #remove this when patch actually works
+        
+        myURI = self.getURI()
+        if myURI in self.myDict:
+            try:
+                print(self.myDict[myURI])
+                self.set_headers(200)
+            except:
+                self.set_headers(400)
+        else:
+            self.set_headers(404)
         
     # This is necessary, as OPTIONS is used to check if the service supports HTTP 1.1 verbs (PUT, PATCH, DELETE)    
     def do_OPTIONS(self):
